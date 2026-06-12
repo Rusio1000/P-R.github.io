@@ -1,14 +1,614 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P & R</title>
-    <link rel="stylesheet" href="cssMain.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P&R — Serwis i składanie komputerów</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0e14;
+    --bg-alt: #0f141d;
+    --panel: #131a25;
+    --line: #232b38;
+    --text: #e7ecf3;
+    --muted: #8b96a8;
+    --cyan: #00f0ff;
+    --violet: #b14eff;
+    --green: #39ff9e;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* circuit background */
+  .circuit-bg{
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background-image:
+      linear-gradient(rgba(0,240,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  }
+
+  .glow-orb{
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: -1;
+    opacity: 0.25;
+  }
+  .glow-1{ width: 500px; height: 500px; background: var(--cyan); top: -150px; left: -100px; }
+  .glow-2{ width: 450px; height: 450px; background: var(--violet); top: 30%; right: -150px; }
+
+  /* nav */
+  header{
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,20,0.75);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav{
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+  }
+  .logo{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+  .logo span{ color: var(--cyan); }
+  .logo .amp{ color: var(--violet); }
+
+  nav ul{
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+  nav a{
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.2s;
+    position: relative;
+  }
+  nav a:hover, nav a:focus-visible{ color: var(--cyan); }
+
+  @media (max-width: 640px){
+    nav ul{ gap: 16px; }
+    nav a{ font-size: 0.85rem; }
+  }
+
+  /* hero */
+  .hero{
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 100px 24px 80px;
+    text-align: center;
+  }
+
+  .tag{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--green);
+    border: 1px solid rgba(57,255,158,0.3);
+    background: rgba(57,255,158,0.06);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+    letter-spacing: 0.05em;
+  }
+  .tag::before{
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%, 100%{ opacity: 1; }
+    50%{ opacity: 0.4; }
+  }
+
+  h1{
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  h1 .accent{
+    background: linear-gradient(120deg, var(--cyan), var(--violet));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero p.lead{
+    max-width: 600px;
+    margin: 0 auto 40px;
+    color: var(--muted);
+    font-size: 1.1rem;
+  }
+
+  .cta-row{
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn{
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 14px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: inline-block;
+  }
+  .btn-primary{
+    background: var(--cyan);
+    color: #04141a;
+    box-shadow: 0 0 24px rgba(0,240,255,0.35);
+  }
+  .btn-primary:hover{ transform: translateY(-2px); box-shadow: 0 0 32px rgba(0,240,255,0.5); }
+  .btn-secondary{
+    border-color: var(--line);
+    color: var(--text);
+  }
+  .btn-secondary:hover{ border-color: var(--violet); color: var(--violet); transform: translateY(-2px); }
+
+  /* sections */
+  section{
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+
+  .section-head{
+    margin-bottom: 48px;
+  }
+  .eyebrow{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--cyan);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  h2{
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* about */
+  .about-grid{
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 800px){
+    .about-grid{ grid-template-columns: 1fr; }
+  }
+  .about-grid p{ color: var(--muted); margin-bottom: 16px; }
+  .about-grid p:last-child{ margin-bottom: 0; }
+
+  .stat-card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before{
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: linear-gradient(180deg, var(--cyan), var(--violet));
+  }
+  .stat-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .stat-num{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+  .stat-label{
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* pricing */
+  .pricing-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .price-card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .price-card:hover{
+    border-color: var(--cyan);
+    transform: translateY(-4px);
+  }
+  .price-card.featured{
+    border-color: var(--violet);
+    background: linear-gradient(160deg, rgba(177,78,255,0.08), var(--panel));
+  }
+  .price-card.featured:hover{ border-color: var(--violet); box-shadow: 0 0 32px rgba(177,78,255,0.2); }
+
+  .price-card .chip{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--violet);
+    margin-bottom: 12px;
+    display: inline-block;
+  }
+
+  .price-card h3{
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .price-card .desc{
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin-bottom: 24px;
+    min-height: 44px;
+  }
+  .price-card .price{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .price-card .price span{
+    font-size: 0.95rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .price-card ul{
+    list-style: none;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .price-card li{
+    padding: 6px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .price-card li::before{
+    content: '▸';
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+  .price-card.featured li::before{ color: var(--violet); }
+
+  .pricing-note{
+    margin-top: 32px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* location */
+  .location-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+  @media (max-width: 800px){
+    .location-grid{ grid-template-columns: 1fr; }
+  }
+
+  .info-list{
+    list-style: none;
+    margin-top: 24px;
+  }
+  .info-list li{
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .info-list li:last-child{ border-bottom: none; }
+  .info-icon{
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--green);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    width: 90px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .info-text{ color: var(--text); font-size: 0.95rem; }
+  .info-text .muted{ color: var(--muted); font-size: 0.85rem; display: block; margin-top: 2px;}
+
+  .map-box{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .map-box::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,240,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .map-pin{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--cyan);
+    z-index: 1;
+    position: relative;
+  }
+  .map-pin .big{
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  /* footer */
+  footer{
+    border-top: 1px solid var(--line);
+    padding: 32px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  footer span{ color: var(--cyan); }
+</style>
 </head>
 <body>
-    <main>
-        <p>skibidi test</p>
-    </main>
+
+<div class="circuit-bg"></div>
+<div class="glow-orb glow-1"></div>
+<div class="glow-orb glow-2"></div>
+
+<header>
+  <nav>
+    <div class="logo">P<span class="amp">&</span><span>R</span></div>
+    <ul>
+      <li><a href="#o-nas">O nas</a></li>
+      <li><a href="#cennik">Cennik</a></li>
+      <li><a href="#lokalizacja">Kontakt</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="tag">Naprawy i serwis komputerów</div>
+  <h1>Twój komputer<br><span class="accent">w pełnej mocy.</span></h1>
+  <p class="lead">
+    Składamy komputery na zamówienie, optymalizujemy działanie systemu i naprawiamy
+    podstawowe usterki sprzętowe i programowe. Szybko, lokalnie, bez przepłacania.
+  </p>
+  <div class="cta-row">
+    <a href="#cennik" class="btn btn-primary">Zobacz cennik</a>
+    <a href="#lokalizacja" class="btn btn-secondary">Znajdź nas</a>
+  </div>
+</section>
+
+<section id="o-nas">
+  <div class="section-head">
+    <div class="eyebrow">// O nas</div>
+    <h2>Kim jesteśmy</h2>
+  </div>
+  <div class="about-grid">
+    <div>
+      <p>
+        Dwoje przyjaciół z tymi samymi zainteresowaniami, Komputery i pomoc innym !!! 
+        Chodzimy razem do klasy informatycznej mamy  po 17 lat a wiemy co i jak jakbyśmy byli w branży od 17 lat !!! 
+      </p>
+      
+    </div>
+    <div class="stat-card">
+      <div class="stat-grid">
+        <div>
+          <div class="stat-num">24h</div>
+          <div class="stat-label">Szybka diagnoza</div>
+        </div>
+        <div>
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Indywidualne podzespoły</div>
+        </div>
+        <div>
+          <div class="stat-num">x zł</div>
+          <div class="stat-label">Diagnoza za x zl</div>
+        </div>
+        <div>
+          <div class="stat-num">2</div>
+          <div class="stat-label">Doświadczeni specjaliści</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cennik">
+  <div class="section-head">
+    <div class="eyebrow">// Cennik</div>
+    <h2>Usługi i ceny</h2>
+  </div>
+  <div class="pricing-grid">
+
+    <div class="price-card">
+      <span class="chip">Diagnoza</span>
+      <h3>Diagnostyka</h3>
+      <div class="desc">Sprawdzenie sprzętu i wykrycie przyczyny usterki.</div>
+      <div class="price">x zł<span></span></div>
+      <ul>
+        <li>Test podzespołów</li>
+        <li>Sprawdzenie systemu</li>
+        <li>Wycena naprawy</li>
+      </ul>
+    </div>
+
+    <div class="price-card">
+      <span class="chip">Software</span>
+      <h3>Optymalizacja systemu</h3>
+      <div class="desc">Czyszczenie, przyspieszenie i konfiguracja systemu.</div>
+      <div class="price">od x zł</div>
+      <ul>
+        <li>Usuwanie zbędnych procesów</li>
+        <li>Aktualizacje i sterowniki</li>
+        <li>Czyszczenie z wirusów</li>
+      </ul>
+    </div>
+
+    <div class="price-card featured">
+      <span class="chip">Najczęściej wybierane</span>
+      <h3>Składanie komputera</h3>
+      <div class="desc">Montaż PC z podzespołów wybranych razem z Tobą.</div>
+      <div class="price">od x zł<span></span></div>
+      <ul>
+        <li>Dobór podzespołów</li>
+        <li>Montaż i okablowanie</li>
+        <li>Instalacja systemu i testy</li>
+      </ul>
+    </div>
+
+    <div class="price-card">
+      <span class="chip">Hardware</span>
+      <h3>Naprawa sprzętowa</h3>
+      <div class="desc">Wymiana podzespołów, czyszczenie, naprawy podstawowe.</div>
+      <div class="price">od x zł</div>
+      <ul>
+        <li>Czyszczenie z pyłu</li>
+        <li>Wymiana pasty termicznej</li>
+        <li>Wymiana podzespołów</li>
+      </ul>
+    </div>
+
+    <div class="price-card">
+      <span class="chip">Reinstall</span>
+      <h3>Instalacja systemu</h3>
+      <div class="desc">Czysta instalacja Windows/Linux wraz z driverami.</div>
+      <div class="price">od x zł</div>
+      <ul>
+        <li>Instalacja systemu</li>
+        <li>Sterowniki i aktualizacje</li>
+        <li>Podstawowe oprogramowanie</li>
+      </ul>
+    </div>
+
+    <div class="price-card">
+      <span class="chip">Dojazd</span>
+      <h3>Wizyta u klienta</h3>
+      <div class="desc">Naprawa lub konsultacja na miejscu, w Twoim domu.</div>
+      <div class="price">od x zł<span></span></div>
+      <ul>
+        <li>Dojazd na terenie miasta</li>
+        <li>Pomoc przy konfiguracji</li>
+        <li>Porady i konsultacje</li>
+      </ul>
+    </div>
+
+  </div>
+  <div class="pricing-note">// Ceny orientacyjne — finalna wycena zależy od stanu sprzętu i zakresu usługi</div>
+</section>
+
+<section id="lokalizacja">
+  <div class="section-head">
+    <div class="eyebrow">// Kontakt</div>
+    <h2>Gdzie nas znajdziesz</h2>
+  </div>
+  <div class="location-grid">
+    <div>
+      <ul class="info-list">
+        <li>
+          <span class="info-icon">Adres</span>
+          <span class="info-text">
+            Częstochowa
+          </span>
+        </li>
+        <li>
+          <span class="info-icon">Godziny</span>
+          <span class="info-text">
+            Pon–Pt: 10:00–18:00
+          
+          </span>
+        </li>
+        <li>
+          <span class="info-icon">Telefon</span>
+          <span class="info-text"> +48 xxx xxx xxx</span>
+        </li>
+        <li>
+          <span class="info-icon">Email</span>
+          <span class="info-text"> x@gmail.com</span>
+        </li>
+      </ul>
+    </div>
+    
+</section>
+
+<footer>
+  © 2026 P<span>&</span>R — Serwis i składanie komputerów
+</footer>
+
 </body>
 </html>
